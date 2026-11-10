@@ -183,11 +183,19 @@
               <li>矢印をタップすると選択（緑＝動かせる／赤＝塞がれている）、<b>もう一度タップで発射</b></li>
               <li>先端から<b>その面の端まで</b>道が空いていれば、蛇のように経路をなぞって抜ける</li>
               <li>塞がれた矢印を実行するとミス。3回でゲームオーバー</li>
-              <li>クリアで次のレベルへ。レベルが上がると立方体が大きくなります</li>
+              <li>クリアで次のレベルへ。レベルが上がると立方体は際限なく大きくなります</li>
+              <li>難易度は画面下のメニューで選択（やさしい＝レベル1から／ふつう＝レベル7から）</li>
             </ul>
             <div class="row">
               <button class="btn primary" id="btnStart" type="button">スタート</button>
             </div>
+          </div>
+        </div>
+
+        <div class="veil" id="genVeil" hidden>
+          <div class="card" style="text-align:center">
+            <h2>問題を生成中…</h2>
+            <p class="sub" id="genMsg" style="margin-bottom:0">盤面を作っています。</p>
           </div>
         </div>
 
@@ -208,9 +216,9 @@
 
       <footer>
         <div id="controls">
-          <select class="btn" id="selMode" aria-label="開始レベル">
-            <option value="normal">ふつう（レベル1から）</option>
-            <option value="hard">むずかしい（レベル3から）</option>
+          <select class="btn" id="selMode" aria-label="難易度（開始レベル）">
+            <option value="easy">やさしい（レベル1から）</option>
+            <option value="normal">ふつう（レベル7から）</option>
           </select>
           <button class="btn" id="btnNew" type="button">新しい問題</button>
           <button class="btn" id="btnReset" type="button">最初から</button>
@@ -223,10 +231,10 @@
           <p><b>矢印は経路（ポリライン）</b>です。尾から先端までマスをつないだ形で、折れ曲がったり、辺を越えて<b>2面・3面にまたがって</b>伸びているものもあります。またがった矢印は、身を置くすべての面で他の矢印の進路を塞ぎます。</p>
           <p><b>抜ける判定</b>は先端だけを見ます。先端のマスから、その矢印が向いている方向へ、<b>その面の端まで</b>一直線に調べ、他の矢印の胴体や頭が1マスでもあれば抜けられません。辺の向こう側の面までは見ません。</p>
           <p><b>抜けるときの動き</b>は、形を保ったまま滑るのではありません。蛇のように、頭が進み、各節が「前の節のいたマス」へ順に吸い込まれて、自分の経路をなぞって這い出ます。別の面にある胴体も経路をたどって辺を越え、先端の面から外へ抜けます。抜けた矢印が他の面へ移ったり、進んだ先で他の面に影響したりすることはありません。</p>
-          <p><b>生成の仕組み</b>は元の2D版と同じく「最後に取り除く矢印から逆順に置く」方式で、必ず解ける盤面になっています。</p>
+          <p><b>生成の仕組み</b>は元の2D版と同じく「最後に取り除く矢印から逆順に置く」方式で、必ず解ける盤面になっています。難しさの調整として、先端が外周にあって外向きの矢印（進路が空っぽで絶対に塞がれない）は生成時に避け、尾が外側・先端が内側寄りで進路の直線が長く他の矢印と交わりやすい配置を優遇しています。そのため最初から動かせる矢印は少なく、順番に解きほぐしていく感覚を重視しています。</p>
           <p><b>視点の操作</b>：ドラッグで回転、ピンチ（PCではマウスホイール）で拡大・縮小できます。画面の上下左右にある矢印ボタンを長押しすると、立方体を回転させずに視点だけが滑らかにスクロールします。これは面の移動ではなく、拡大して画面の外にはみ出した部分を見るための、画面の縦・横方向だけの移動です（奥行き方向には動きません）。</p>
           <p><b>発射はダブルタップ方式</b>です。1回目のタップで矢印が選択され、動かせる矢印は緑に、塞がれている矢印は赤に光ります。塞がれている場合は、塞いでいる矢印も点滅して分かります。選択しただけではミスにはなりません。もう一度タップすると実行され、塞がれた矢印を実行したときだけミスになります。何もない所をタップすると選択が外れます。</p>
-          <p><b>無限ラダー</b>：クリアすると次のレベルへ進めます。レベル1〜8で1面が3×3から10×10まで大きくなり、矢印の密度（表面の占有率 約65%）は保たれます。10×10に到達した後のレベルでは大きさはそのままで、依存の深さ（何段階に分けて解く必要があるか）・長く曲がった矢印の割合・最初から動かせる矢印の少なさ、といった生成条件が少しずつ厳しくなります。</p>
+          <p><b>無限ラダー</b>：クリアすると次のレベルへ進めます。レベル1〜8で1面が3×3から10×10まで大きくなり、レベル9以降も1レベルごとに2ずつ（12×12、14×14、16×16…）際限なく大きくなります。矢印の密度は表面の占有率 約85% を目標に生成します。小さめ〜中くらいの盤面ではおおむねその水準（80〜88%程度）を保ちますが、非常に大きな盤面では到達可能な範囲でできるだけ詰めて生成するため、占有率はやや下がる場合があります。どの盤面も必ず解けることは保証されます。盤面が大きいレベルでは生成に時間がかかるため、「問題を生成中…」の表示が出ます。依存の深さ（何段階に分けて解く必要があるか）などの生成条件は、占有率と両立する範囲で段階的に締めています。</p>
         </details>
       </footer>
     </div>
@@ -257,20 +265,23 @@
     var COLORS = ['#ef4444', '#f97316', '#f5c518', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#a3e635'];
     var LIFT = 0.16;               // 矢印が面から浮く高さ（マス=1）
     /* 無限ラダー：レベル → 盤面設定。
-       レベル1〜8で 1面が 3×3→10×10 に拡大。矢印の本数は表面の
-       占有率 約65% を保つよう決める。レベル9以降は 10×10 固定で、
+       レベル1〜8で 1面が 3×3→10×10 に拡大し、レベル9以降も
+       1レベルごとに +2 ずつ（12×12、14×14…）際限なく大きくなる。
+       矢印の本数は表面の占有率 約85% を目標に決める（最優先指標）。
+       非常に大きな盤面では到達可能な範囲でできるだけ詰める。
        依存の深さの下限・最初から動かせる本数の上限・長く曲がった
-       矢印の割合の下限を段階的に厳しくする */
+       矢印の割合の下限は、占有率と両立する範囲で段階的に締める */
+    var TARGET_OCC = 0.85;
     function levelCfg(L) {
-      var N = Math.min(L + 2, 10);
-      var lenMax = Math.min(N + 3, 12);
+      var N = L <= 8 ? L + 2 : 10 + 2 * (L - 8);
+      var lenMax = Math.min(N + 3, 22);
       var avgLen = (3 + lenMax) / 2;
-      var target = Math.round(0.65 * 6 * N * N / avgLen);
+      var target = Math.round(TARGET_OCC * 6 * N * N / avgLen);
       var extra = Math.max(0, L - 8);
       return {
         N: N, target: target, lenMax: lenMax, level: L,
         minLayers: extra > 0 ? Math.min(5 + extra, 11) : 0,
-        maxFree: extra > 0 ? Math.max(10, 22 - 2 * extra) : Infinity,
+        maxFree: extra > 0 ? Math.max(8, 20 - 2 * extra) : (L >= 7 ? 14 : L >= 5 ? 16 : Infinity),
         minBent: extra > 0 ? Math.min(0.15 + 0.05 * extra, 0.45) : 0
       };
     }
@@ -335,19 +346,24 @@
        逆順に除けば必ず全て取り除ける。
        ================================================================ */
     var blockBias = false;   // 高レベル時：今フリーな矢印の進路を塞ぐ配置を優遇する
+    /* 今フリーな矢印の進路マスの集合。配置が成功するたびに generateBoard が
+       更新するキャッシュ（試行のたびに再計算すると生成が極端に遅くなる） */
+    var freeRayCache = null;
+    var genMinLen = 3;       // 充填の終盤だけ長さ2の矢印も許可し、隙間を埋める
+    function computeFreeRaySet(occ) {
+      var seenD = new Set(), defsNow = [];
+      occ.forEach(function (df) { if (!seenD.has(df.id)) { seenD.add(df.id); defsNow.push(df); } });
+      if (defsNow.length < 6) return null;
+      var set = new Set();
+      defsNow.forEach(function (df) {
+        var ray = rayCells(df.cells, df.headDir), blocked = false;
+        for (var q = 0; q < ray.length; q++) { if (occ.has(keyOf(ray[q]))) { blocked = true; break; } }
+        if (!blocked) ray.forEach(function (c) { set.add(keyOf(c)); });
+      });
+      return set.size ? set : null;
+    }
     function tryPlace(occ, lenMax) {
-      var freeRaySet = null, placedCount = 0;
-      if (blockBias) {
-        freeRaySet = new Set();
-        var seenD = new Set(), defsNow = [];
-        occ.forEach(function (df) { if (!seenD.has(df.id)) { seenD.add(df.id); defsNow.push(df); } });
-        placedCount = defsNow.length;
-        defsNow.forEach(function (df) {
-          var ray = rayCells(df.cells, df.headDir), blocked = false;
-          for (var q = 0; q < ray.length; q++) { if (occ.has(keyOf(ray[q]))) { blocked = true; break; } }
-          if (!blocked) ray.forEach(function (c) { freeRaySet.add(keyOf(c)); });
-        });
-      }
+      var freeRaySet = freeRayCache;
       var start = null, t, f, i, j, edge;
       for (t = 0; t < 30 && !start; t++) {
         f = ri(6);
@@ -361,7 +377,7 @@
         if (!occ.has(f + '_' + i + '_' + j)) start = { f: f, i: i, j: j };
       }
       if (!start) return null;
-      var lenT = 3 + ri(lenMax - 2);
+      var lenT = genMinLen + ri(lenMax - genMinLen + 1);
       var path = [start];
       var inPath = new Set([keyOf(start)]);
       var cur = { f: start.f, i: start.i, j: start.j };
@@ -394,13 +410,20 @@
         }
         if (!moved) break;
       }
-      if (path.length < 3) return null;
+      if (path.length < genMinLen) return null;
       var ray = rayCells(path, headDir);        // 置いた時点で抜けることを保証する
       for (var r = 0; r < ray.length; r++) { if (occ.has(keyOf(ray[r])) || inPath.has(keyOf(ray[r]))) return null; }
-      if (freeRaySet && placedCount >= 6) {     // フリーな矢印を塞がない配置は大抵はね、依存を深くする
+      /* 先端の位置バイアス：外周マスにあって外向きの先端は進路が空っぽで
+         絶対に塞がれず、盤面が解けやすくなるため大抵はねる。
+         先端が内側寄りで進路の直線が長い配置を優遇する */
+      var hd = path[path.length - 1];
+      var onRing = hd.i === 0 || hd.j === 0 || hd.i === boardN - 1 || hd.j === boardN - 1;
+      if (ray.length === 0 && Math.random() < 0.92) return null;
+      if (onRing && ray.length <= 1 && Math.random() < 0.45) return null;
+      if (freeRaySet) {     // フリーな矢印を塞がない配置は大抵はね、依存を深くする（占有率を損なわない強さに留める）
         var blocks = 0;
         path.forEach(function (c) { if (freeRaySet.has(keyOf(c))) blocks++; });
-        if (blocks === 0 && Math.random() < 0.85) return null;
+        if (blocks === 0 && Math.random() < 0.5) return null;
       }
       var adjColors = new Set();                // 隣り合う矢印と色を被らせない
       path.forEach(function (c) {
@@ -411,10 +434,96 @@
       var faceSet = new Set(path.map(function (c) { return c.f; }));
       return { cells: path, headDir: headDir, colorIdx: colorIdx, facesCount: faceSet.size };
     }
+    /* a から b へ向かう方向（a の面の局所方向）を幾何から求める */
+    function dirBetween(a, b) {
+      var va = cellCenter(a.f, a.i, a.j), vb = cellCenter(b.f, b.i, b.j);
+      var v = vb.sub(va);
+      for (var k = 0; k < 4; k++) { if (dirVec(a.f, k).equals(v)) return k; }
+      return 0;
+    }
+    /* 先端優先の配置：先端のマスと向きを先に決め（進路が空いていること、
+       できれば進路が長い＝先端が内側寄りであることを確認してから）、
+       尾を後方へランダムウォークで伸ばす。高密度・大盤面でも配置が
+       成立しやすく、尾が外側・先端が内側という配置が自然に増える */
+    function tryPlaceHeadFirst(occ, lenMax, minRay) {
+      var bestH = null, bestD = 0, bestRay = null;
+      for (var t = 0; t < 60; t++) {
+        var f = ri(6), i = ri(boardN), j = ri(boardN);
+        if (occ.has(f + '_' + i + '_' + j)) continue;
+        var d = ri(4);
+        var H = { f: f, i: i, j: j };
+        var ray = rayCells([H], d), clear = true;
+        for (var r = 0; r < ray.length; r++) { if (occ.has(keyOf(ray[r]))) { clear = false; break; } }
+        if (!clear) continue;
+        if (ray.length === 0) continue;   // 進路ゼロの先端は絶対に塞がれないので避ける
+        if (ray.length >= minRay) { bestH = H; bestD = d; bestRay = ray; break; }
+        if (!bestRay || ray.length > bestRay.length) { bestH = H; bestD = d; bestRay = ray; }
+      }
+      if (!bestH) return null;
+      /* 今フリーな矢印の進路マス：尾がここを横切ると、その矢印が塞がれて
+         最初から動かせる本数が減る（解きほぐし感を強める） */
+      var freeRaySet = freeRayCache;
+      var raySet = new Set(bestRay.map(keyOf));   // 尾が自分の進路を塞がないようにする
+      var lenT = genMinLen + ri(lenMax - genMinLen + 1);
+      var path = [bestH];
+      var inPath = new Set([keyOf(bestH)]);
+      var s0 = stepCell(bestH, backOf[bestD]);    // 最初の1歩は先端の向きの真後ろ（向きを確定させる）
+      var k0 = keyOf(s0);
+      if (occ.has(k0) || raySet.has(k0)) return null;
+      path.unshift({ f: s0.f, i: s0.i, j: s0.j });
+      inPath.add(k0);
+      var cur = path[0];
+      var fwd = dirBetween(cur, bestH);           // cur から先端側の隣マスへ向かう方向
+      while (path.length < lenT) {
+        var g = backOf[fwd];                      // 尾の伸びる向き（先端と反対側を基本にする）
+        var cand = [[g, 5], [leftOf[g], 2], [rightOf[g], 2], [backOf[g], 1]];
+        if (freeRaySet) {                          // フリーな矢印の進路を横切る歩を優遇する
+          for (var ci = 0; ci < cand.length; ci++) {
+            if (freeRaySet.has(keyOf(stepCell(cur, cand[ci][0])))) cand[ci][1] *= 5;
+          }
+        }
+        var moved = false;
+        while (cand.length) {
+          var tot = 0, x;
+          for (x = 0; x < cand.length; x++) tot += cand[x][1];
+          var roll = Math.random() * tot, pick = 0;
+          for (x = 0; x < cand.length; x++) { roll -= cand[x][1]; if (roll <= 0) { pick = x; break; } }
+          var e = cand[pick][0];
+          cand.splice(pick, 1);
+          var s = stepCell(cur, e);
+          var k = keyOf(s);
+          if (!occ.has(k) && !inPath.has(k) && !raySet.has(k)) {
+            var cell = { f: s.f, i: s.i, j: s.j };
+            path.unshift(cell);
+            inPath.add(k);
+            fwd = dirBetween(cell, cur);
+            cur = cell;
+            moved = true; break;
+          }
+        }
+        if (!moved) break;
+      }
+      if (path.length < genMinLen) return null;
+      if (freeRaySet) {                            // フリーな矢印を1本も塞がない配置は半分はねる
+        var blocks = 0;
+        path.forEach(function (c) { if (freeRaySet.has(keyOf(c))) blocks++; });
+        if (blocks === 0 && Math.random() < 0.5) return null;
+      }
+      var adjColors = new Set();                // 隣り合う矢印と色を被らせない
+      path.forEach(function (c) {
+        for (var d2 = 0; d2 < 4; d2++) { var a = occ.get(keyOf(stepCell(c, d2))); if (a) adjColors.add(a.colorIdx); }
+      });
+      var avail = COLORS.map(function (_, idx) { return idx; }).filter(function (idx) { return !adjColors.has(idx); });
+      var colorIdx = avail.length ? avail[ri(avail.length)] : ri(COLORS.length);
+      var faceSet = new Set(path.map(function (c) { return c.f; }));
+      return { cells: path, headDir: bestD, colorIdx: colorIdx, facesCount: faceSet.size };
+    }
     function solvable(defs) {
       var occ = new Map();
       defs.forEach(function (df) { df.cells.forEach(function (c) { occ.set(keyOf(c), df); }); });
-      var rest = defs.slice();
+      /* 逆順配置の性質上、最後に置いた矢印は常に抜ける。後ろから探すと
+         大きな盤面でも貪欲法チェックがほぼ線形時間で終わる */
+      var rest = defs.slice().reverse();
       while (rest.length) {
         var idx = -1;
         for (var n = 0; n < rest.length; n++) {
@@ -461,33 +570,93 @@
       });
       return { layers: layers, free0: free0 < 0 ? 0 : free0, bentRatio: defs.length ? bent / defs.length : 0 };
     }
+    /* 盤面生成：占有率（約85%）を最優先指標とし、「必ず解けること」
+       （貪欲法ソルバーの合格）だけを必須条件とするベストエフォート方式。
+       候補盤面を試行予算の範囲で複数作り、解けるものの中で最も
+       占有率の高い盤面を返す。面またぎ・依存の深さなどの条件は
+       占有率と両立する範囲でのみ締める */
     function generateBoard(cfg) {
+      var targetCells = Math.round(TARGET_OCC * 6 * cfg.N * cfg.N);
       var needCross2 = Math.ceil(cfg.target * 0.4);
       var needCross3 = cfg.N >= 5 ? Math.max(3, Math.round(cfg.target * 0.08)) : 2;
-      blockBias = cfg.minLayers > 0;
-      var maxBoards = blockBias ? 12 : cfg.N >= 9 ? 30 : cfg.N >= 7 ? 45 : 60;
-      var failCap = blockBias ? 6000 : cfg.N >= 9 ? 3500 : 6000;
-      var best = null, bestScore = -1;
+      var big = cfg.N > 14;
+      var huge = cfg.N > 24;
+      blockBias = (cfg.minLayers > 0 || cfg.level >= 5) && !big;   // 大盤面ではバイアス計算自体が重いので切る
+      /* ユーザーは生成待ち時間を気にしないため、大盤面の試行予算を大幅に拡大する。
+         以前の予算（N≥11で9秒／bigで30秒・最大2枚）では Lv9≈80%、Lv13≈72%、
+         Lv20≈59% まで占有率が落ちていた。予算を数倍〜数十倍に広げ、
+         複数候補から最も詰まった解ける盤面を選ぶことで 80〜88% 圏へ近づける */
+      var maxBoards = huge ? 5 : big ? 7 : cfg.N >= 11 ? 36 : blockBias ? 8 : cfg.N >= 9 ? 30 : cfg.N >= 7 ? 45 : 60;
+      var failCap = huge ? Math.max(500000, cfg.target * 120) : big ? Math.max(300000, cfg.target * 90) : cfg.N >= 11 ? Math.max(150000, cfg.target * 50) : blockBias ? 10000 : cfg.N >= 9 ? 5000 : 7000;
+      /* 生成の時間予算：過ぎたら、その時点の最良盤面を返す（ベストエフォート）。
+         1枚目の盤面だけは予算に関係なく最後まで作る。
+         大盤面ほど長く確保する（ユーザーは待ち時間を気にしない旨を明言） */
+      var deadline = Date.now() + (huge ? 300000 : big ? 210000 : cfg.N >= 13 ? 120000 : cfg.N >= 11 ? 75000 : cfg.N >= 9 ? 30000 : 4000);
+      var best = null, bestCovered = -1, bestScore = -1, bestEdge = Infinity;
       for (var b = 0; b < maxBoards; b++) {
-        var occ = new Map(), defs = [], fails = 0;
-        while (defs.length < cfg.target && fails < failCap) {
-          var df = tryPlace(occ, cfg.lenMax);
-          if (df) { df.id = defs.length; defs.push(df); df.cells.forEach(function (c) { occ.set(keyOf(c), df); }); }
-          else fails++;
+        if (b > 0 && Date.now() > deadline) break;
+        var occ = new Map(), defs = [], fails = 0, covered = 0, consec = 0;
+        freeRayCache = null; genMinLen = 3;
+        while (covered < targetCells && fails < failCap) {
+          if (b > 0 && (fails & 63) === 0 && Date.now() > deadline) break;
+          /* 充填が進むほど許容する最大長を段階的に縮める。盤面が詰まった
+             終盤に長い矢印ばかり狙うと失敗が量産され占有率が伸びないため、
+             後半は短い矢印で隙間を埋める方へ寄せる（大盤面で特に効く） */
+          var effLenMax = cfg.lenMax;
+          if (covered > targetCells * 0.82) effLenMax = Math.min(effLenMax, 5);
+          else if (covered > targetCells * 0.68) effLenMax = Math.min(effLenMax, 7);
+          else if (covered > targetCells * 0.50) effLenMax = Math.min(effLenMax, 11);
+          genMinLen = covered > targetCells * 0.55 ? 2 : 3;
+          /* 通常配置が続けて失敗したら先端優先配置に切り替える。
+             序盤は進路の長い先端（内側寄り）を要求し、終盤は緩める。
+             大盤面では切り替えを早め、詰まりやすい配置を積極的に使う */
+          var df = null;
+          var headFirstAt = big ? 8 : 20;
+          if (consec >= headFirstAt && consec % 2 === 0) {
+            var minRay = covered * 2 < targetCells ? Math.max(2, Math.floor(cfg.N * 0.35)) : 0;
+            df = tryPlaceHeadFirst(occ, effLenMax, minRay);
+          }
+          if (!df) df = tryPlace(occ, effLenMax);
+          if (df) {
+            df.id = defs.length; defs.push(df); covered += df.cells.length;
+            df.cells.forEach(function (c) { occ.set(keyOf(c), df); });
+            consec = 0;
+            freeRayCache = computeFreeRaySet(occ);
+          }
+          else { fails++; consec++; }
         }
-        if (defs.length < cfg.target) continue;
+        if (defs.length < 6) continue;
+        if (!solvable(defs)) continue;          // 解けることは必須条件
+        /* 先端・尾の位置の統計：進路ゼロの先端（絶対に塞がれない）は少なく、
+           尾が外周にある配置を優遇する */
+        var edgeHeads = 0, tailRing = 0;
+        defs.forEach(function (d) {
+          if (rayCells(d.cells, d.headDir).length === 0) edgeHeads++;
+          var tl = d.cells[0];
+          if (tl.i === 0 || tl.j === 0 || tl.i === cfg.N - 1 || tl.j === cfg.N - 1) tailRing++;
+        });
+        if (big) {
+          /* 大盤面：重い指標計算は避け、占有率と進路ゼロ先端の少なさで選ぶ */
+          if (covered > bestCovered || (covered === bestCovered && edgeHeads < bestEdge)) { bestCovered = covered; bestEdge = edgeHeads; best = defs; }
+          if (covered >= targetCells) return defs;
+          continue;
+        }
         var c2 = defs.filter(function (d) { return d.facesCount === 2; }).length;
         var c3 = defs.filter(function (d) { return d.facesCount >= 3; }).length;
         var m = boardMetrics(defs);
         var okCross = c2 + c3 >= needCross2 && c3 >= needCross3;
         var okHard = m.layers >= cfg.minLayers && m.free0 <= cfg.maxFree && m.bentRatio >= cfg.minBent;
-        var score = c2 + c3 * 2 + m.layers * 4 + m.bentRatio * 10 - Math.max(0, m.free0 - 4) * 1.5;
-        if (score > bestScore) { bestScore = score; best = defs; }
-        if (okCross && okHard && solvable(defs)) return defs;
+        /* 占有率を最優先し、面またぎ・依存の深さ・フリー本数・先端位置は
+           占有率がほぼ同等の盤面同士の優劣として効かせる */
+        var score = covered * 10 + c2 + c3 * 2 + m.layers * 4 + m.bentRatio * 10
+          - Math.max(0, m.free0 - 3) * 2.5 - edgeHeads * 3 + tailRing * 0.3;
+        if (score > bestScore) { bestScore = score; best = defs; bestCovered = covered; }
+        if (covered >= targetCells && okCross && (okHard || b >= 4)) return defs;
       }
       if (best) return best;
+      freeRayCache = null; genMinLen = 3;
       var occ2 = new Map(), defs2 = [], fails2 = 0;   // 最終手段：条件を緩めた生成
-      while (defs2.length < Math.max(6, cfg.target - 4) && fails2 < 8000) {
+      while (defs2.length < Math.max(6, cfg.target - 4) && fails2 < (cfg.N > 14 ? 200000 : 8000)) {
         var df2 = tryPlace(occ2, cfg.lenMax);
         if (df2) { df2.id = defs2.length; defs2.push(df2); df2.cells.forEach(function (c) { occ2.set(keyOf(c), df2); }); }
         else fails2++;
@@ -501,7 +670,7 @@
     var stageEl = document.getElementById('stage');
     var glEl = document.getElementById('gl');
     var scene, camera, renderer, world, arrowsGroup, cubeMesh = null, cubeEdges = null;
-    var GEO_SPHERE, GEO_CYL, GEO_CONE, GEO_HIT, MAT_HIT, UP = null;
+    var GEO_HI = null, GEO_LO = null, MAT_HIT, UP = null;
 
     function makeFaceTexture(fIdx) {
       var S = 512, cv = document.createElement('canvas');
@@ -559,10 +728,21 @@
       var key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(5, 9, 6); scene.add(key);
       var fill = new THREE.DirectionalLight(0x8fb4ff, 0.55); fill.position.set(-7, -3, -6); scene.add(fill);
       var rim = new THREE.DirectionalLight(0xffe0b3, 0.4); rim.position.set(-2, 4, -9); scene.add(rim);
-      GEO_SPHERE = new THREE.SphereGeometry(0.30, 20, 14);
-      GEO_CYL = new THREE.CylinderGeometry(0.205, 0.205, 1, 12);
-      GEO_CONE = new THREE.ConeGeometry(0.40, 0.74, 20);
-      GEO_HIT = new THREE.SphereGeometry(0.56, 8, 6);
+      /* 大きな盤面では矢印が数千本になるため、低ポリゴン形状に切り替えて
+         描画負荷がマス数に対して爆発しないようにする（画面外の矢印は
+         three.js のフラスタムカリングで自動的に描画対象から外れる） */
+      GEO_HI = {
+        sphere: new THREE.SphereGeometry(0.30, 20, 14),
+        cyl: new THREE.CylinderGeometry(0.205, 0.205, 1, 12),
+        cone: new THREE.ConeGeometry(0.40, 0.74, 20),
+        hit: new THREE.SphereGeometry(0.56, 8, 6)
+      };
+      GEO_LO = {
+        sphere: new THREE.SphereGeometry(0.30, 10, 7),
+        cyl: new THREE.CylinderGeometry(0.205, 0.205, 1, 8),
+        cone: new THREE.ConeGeometry(0.40, 0.74, 10),
+        hit: new THREE.SphereGeometry(0.56, 6, 4)
+      };
       MAT_HIT = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false });
       UP = new THREE.Vector3(0, 1, 0);
       onResize();
@@ -575,17 +755,18 @@
     var occ = new Map();    // key -> def
     var hitMeshes = [];
     function buildArrowMesh(df) {
+      var G = boardN > 16 ? GEO_LO : GEO_HI;
       var group = new THREE.Group();
       var mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(COLORS[df.colorIdx]), roughness: 0.38, metalness: 0.05, transparent: true, opacity: 1 });
       df.mat = mat;
       df.group = group;
       df.spheres = []; df.cyls = []; df.hits = [];
       df.cells.forEach(function () {
-        var s = new THREE.Mesh(GEO_SPHERE, mat); group.add(s); df.spheres.push(s);
-        var hMesh = new THREE.Mesh(GEO_HIT, MAT_HIT); hMesh.userData.defId = df.id; group.add(hMesh); df.hits.push(hMesh); hitMeshes.push(hMesh);
+        var s = new THREE.Mesh(G.sphere, mat); group.add(s); df.spheres.push(s);
+        var hMesh = new THREE.Mesh(G.hit, MAT_HIT); hMesh.userData.defId = df.id; group.add(hMesh); df.hits.push(hMesh); hitMeshes.push(hMesh);
       });
-      for (var k = 0; k < df.cells.length - 1; k++) { var cy = new THREE.Mesh(GEO_CYL, mat); group.add(cy); df.cyls.push(cy); }
-      df.cone = new THREE.Mesh(GEO_CONE, mat); group.add(df.cone);
+      for (var k = 0; k < df.cells.length - 1; k++) { var cy = new THREE.Mesh(G.cyl, mat); group.add(cy); df.cyls.push(cy); }
+      df.cone = new THREE.Mesh(G.cone, mat); group.add(df.cone);
       var head = df.cells[df.cells.length - 1];
       df.exitVec = dirVec(head.f, df.headDir);
       arrowsGroup.add(group);
@@ -992,9 +1173,8 @@
       selectDef(null);
       document.getElementById('endTitle').textContent = clear ? 'レベル' + level + ' クリア！' : 'ゲームオーバー';
       if (clear) {
-        document.getElementById('endMsg').textContent = level >= 8
-          ? 'すべての矢印を抜き切りました。次のレベルは 10×10 のまま、生成条件がさらに厳しくなります。'
-          : 'すべての矢印を抜き切りました。次のレベルは ' + Math.min(level + 3, 10) + '×' + Math.min(level + 3, 10) + ' です。';
+        var nextN = levelCfg(level + 1).N;
+        document.getElementById('endMsg').textContent = 'すべての矢印を抜き切りました。次のレベルは ' + nextN + '×' + nextN + ' です。';
       } else {
         document.getElementById('endMsg').textContent = 'ミスが3回になりました。レベル' + level + ' を最初からやり直せます。';
       }
@@ -1003,13 +1183,35 @@
     }
     function hideEnd() { document.getElementById('endVeil').hidden = true; }
     var level = 1;
+    /* 生成は盤面が大きいほど時間がかかるため、「生成中」表示を先に
+       描画してから重い処理を行う。生成中はタップ判定を受け付けない */
+    var genBusy = false, genQueued = false;
     function newGame() {
-      var cfg = levelCfg(level);
-      boardN = cfg.N;
-      buildCube();
-      setupBoard(generateBoard(cfg));
-      setDefaultDist();
-      resetPan();
+      if (genBusy) { genQueued = true; return; }
+      genBusy = true;
+      var cfg0 = levelCfg(level);
+      var gv = document.getElementById('genVeil');
+      document.getElementById('genMsg').textContent = 'レベル' + level + '（1面 ' + cfg0.N + '×' + cfg0.N + '）の盤面を作っています。大きな盤面では詰め込みを優先するため、生成に時間がかかる場合があります。';
+      gv.hidden = false;
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          try {
+            var cfg = levelCfg(level);
+            boardN = cfg.N;
+            buildCube();
+            if (renderer) {
+              renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, boardN > 20 ? 1.5 : 2));
+              onResize();
+            }
+            setupBoard(generateBoard(cfg));
+            setDefaultDist();
+            resetPan();
+          } catch (e) { showError(e.message || String(e)); }
+          gv.hidden = true;
+          genBusy = false;
+          if (genQueued) { genQueued = false; newGame(); }
+        }, 20);
+      });
     }
     function resetBoard() {
       defs.forEach(function (df) { df.alive = true; });
@@ -1041,6 +1243,7 @@
       camera.updateProjectionMatrix();
     }
     function handleTap(x, y) {
+      if (genBusy) return;
       var rect = renderer.domElement.getBoundingClientRect();
       ndc.set(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1);
       raycaster.setFromCamera(ndc, camera);
@@ -1212,7 +1415,7 @@
       });
       document.getElementById('btnView').addEventListener('click', function () { trx = 0.55; try_ = -0.65; setDefaultDist(); resetPan(); });
       document.getElementById('selMode').addEventListener('change', function () {
-        level = this.value === 'hard' ? 3 : 1;
+        level = this.value === 'normal' ? 7 : 1;
         hideEnd(); newGame(); if (state !== 'ready') state = 'playing';
       });
       tick();
