@@ -82,6 +82,32 @@
         user-select: none; -webkit-user-select: none; white-space: nowrap; max-width: 92%;
       }
       #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      #toast { bottom: 78px; }
+      /* ---------- 視点スクロールボタン（画面端） ---------- */
+      .panBtn {
+        position: absolute; z-index: 4; width: 52px; height: 52px; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--plate); border: 1px solid var(--plate-line); border-radius: 14px;
+        color: #e8eef7; font-size: 19px; cursor: pointer;
+        touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+      }
+      .panBtn.held, .panBtn:active { background: var(--ctl-bg-hi); color: var(--accent); }
+      #panUp { top: 64px; left: 50%; transform: translateX(-50%); }
+      #panDown { bottom: 14px; left: 50%; transform: translateX(-50%); }
+      #panLeft { left: 10px; top: 50%; transform: translateY(-50%); }
+      #panRight { right: 10px; top: 50%; transform: translateY(-50%); }
+      @media (max-width: 560px) { #panUp { top: 102px; } }
+      /* ---------- 選択中矢印の状態表示 ---------- */
+      #selInfo {
+        position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%);
+        z-index: 4; padding: 7px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
+        background: var(--plate); border: 1px solid var(--plate-line); color: #e8eef7;
+        white-space: nowrap; max-width: 94%; user-select: none; -webkit-user-select: none;
+        pointer-events: none;
+      }
+      #selInfo[hidden] { display: none; }
+      #selInfo.ok { border-color: rgba(74,222,128,.75); color: #bbf7d0; }
+      #selInfo.ng { border-color: rgba(255,120,140,.75); color: #ffd9de; }
       /* ---------- overlays ---------- */
       .veil {
         position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -137,7 +163,13 @@
 
         <div class="plate" id="hudLives"><span class="lbl">ライフ</span><span id="hearts"></span></div>
         <div class="plate" id="hudCross">面またぎ <b id="crossStat">–</b></div>
-        <div class="plate" id="hudRemain">残り <b id="remainNum">0</b> 本</div>
+        <div class="plate" id="hudRemain">Lv <b id="levelNum">1</b> ・ <span id="sizeInfo">3×3</span> ・ 残り <b id="remainNum">0</b> 本</div>
+
+        <button class="panBtn" id="panUp" type="button" aria-label="視点を上へスクロール">▲</button>
+        <button class="panBtn" id="panDown" type="button" aria-label="視点を下へスクロール">▼</button>
+        <button class="panBtn" id="panLeft" type="button" aria-label="視点を左へスクロール">◀</button>
+        <button class="panBtn" id="panRight" type="button" aria-label="視点を右へスクロール">▶</button>
+        <div id="selInfo" hidden></div>
 
         <div id="toast" role="status"></div>
 
@@ -146,11 +178,12 @@
             <h1>矢印パズル3D</h1>
             <p class="sub">正立方体の表面を這う矢印パズル（試作）</p>
             <ul>
-              <li>ドラッグで立方体を回し、矢印をタップ</li>
-              <li>先端から<b>その面の端まで</b>道が空いていれば抜ける</li>
-              <li>矢印は蛇のように自分の経路をなぞって這い出る</li>
-              <li>塞がれた矢印を押すとミス。3回でゲームオーバー</li>
-              <li>ウインドベルのようなBGMがループ再生されます（下のボタンでオン／オフ）</li>
+              <li>ドラッグで回転、ピンチ／マウスホイールで拡大・縮小</li>
+              <li>画面端の矢印ボタン長押しで、回転せずに視点をスクロール</li>
+              <li>矢印をタップすると選択（緑＝動かせる／赤＝塞がれている）、<b>もう一度タップで発射</b></li>
+              <li>先端から<b>その面の端まで</b>道が空いていれば、蛇のように経路をなぞって抜ける</li>
+              <li>塞がれた矢印を実行するとミス。3回でゲームオーバー</li>
+              <li>クリアで次のレベルへ。レベルが上がると立方体が大きくなります</li>
             </ul>
             <div class="row">
               <button class="btn primary" id="btnStart" type="button">スタート</button>
@@ -163,8 +196,9 @@
             <h2 id="endTitle">クリア！</h2>
             <p class="sub" id="endMsg"></p>
             <div class="row">
-              <button class="btn primary" id="btnAgain" type="button">同じ問題をもう一度</button>
-              <button class="btn" id="btnNew2" type="button">新しい問題</button>
+              <button class="btn primary" id="btnNext" type="button">次のレベルへ</button>
+              <button class="btn" id="btnAgain" type="button">同じ問題をもう一度</button>
+              <button class="btn" id="btnRetryLevel" type="button">このレベルの新しい問題</button>
             </div>
           </div>
         </div>
@@ -174,15 +208,15 @@
 
       <footer>
         <div id="controls">
-          <select class="btn" id="selMode" aria-label="難易度">
-            <option value="normal">ふつう（4×4×6面）</option>
-            <option value="hard">むずかしい（5×5×6面）</option>
+          <select class="btn" id="selMode" aria-label="開始レベル">
+            <option value="normal">ふつう（レベル1から）</option>
+            <option value="hard">むずかしい（レベル3から）</option>
           </select>
           <button class="btn" id="btnNew" type="button">新しい問題</button>
           <button class="btn" id="btnReset" type="button">最初から</button>
           <span class="spacer"></span>
           <button class="btn" id="btnBgm" type="button" aria-label="BGMのオンとオフを切り替える">♪ BGM：オン</button>
-          <button class="btn" id="btnView" type="button">回転を戻す</button>
+          <button class="btn" id="btnView" type="button">視点を戻す</button>
         </div>
         <details id="rules">
           <summary>ルールと仕組み</summary>
@@ -190,6 +224,9 @@
           <p><b>抜ける判定</b>は先端だけを見ます。先端のマスから、その矢印が向いている方向へ、<b>その面の端まで</b>一直線に調べ、他の矢印の胴体や頭が1マスでもあれば抜けられません。辺の向こう側の面までは見ません。</p>
           <p><b>抜けるときの動き</b>は、形を保ったまま滑るのではありません。蛇のように、頭が進み、各節が「前の節のいたマス」へ順に吸い込まれて、自分の経路をなぞって這い出ます。別の面にある胴体も経路をたどって辺を越え、先端の面から外へ抜けます。抜けた矢印が他の面へ移ったり、進んだ先で他の面に影響したりすることはありません。</p>
           <p><b>生成の仕組み</b>は元の2D版と同じく「最後に取り除く矢印から逆順に置く」方式で、必ず解ける盤面になっています。</p>
+          <p><b>視点の操作</b>：ドラッグで回転、ピンチ（PCではマウスホイール）で拡大・縮小できます。画面の上下左右にある矢印ボタンを長押しすると、立方体を回転させずに視点だけが滑らかにスクロールします。これは面の移動ではなく、拡大して画面の外にはみ出した部分を見るための、画面の縦・横方向だけの移動です（奥行き方向には動きません）。</p>
+          <p><b>発射はダブルタップ方式</b>です。1回目のタップで矢印が選択され、動かせる矢印は緑に、塞がれている矢印は赤に光ります。塞がれている場合は、塞いでいる矢印も点滅して分かります。選択しただけではミスにはなりません。もう一度タップすると実行され、塞がれた矢印を実行したときだけミスになります。何もない所をタップすると選択が外れます。</p>
+          <p><b>無限ラダー</b>：クリアすると次のレベルへ進めます。レベル1〜8で1面が3×3から10×10まで大きくなり、矢印の密度（表面の占有率 約65%）は保たれます。10×10に到達した後のレベルでは大きさはそのままで、依存の深さ（何段階に分けて解く必要があるか）・長く曲がった矢印の割合・最初から動かせる矢印の少なさ、といった生成条件が少しずつ厳しくなります。</p>
         </details>
       </footer>
     </div>
@@ -219,10 +256,24 @@
     ];
     var COLORS = ['#ef4444', '#f97316', '#f5c518', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#a3e635'];
     var LIFT = 0.16;               // 矢印が面から浮く高さ（マス=1）
-    var MODES = {
-      normal: { N: 4, target: 14, lenMax: 7 },
-      hard:   { N: 5, target: 24, lenMax: 8 }
-    };
+    /* 無限ラダー：レベル → 盤面設定。
+       レベル1〜8で 1面が 3×3→10×10 に拡大。矢印の本数は表面の
+       占有率 約65% を保つよう決める。レベル9以降は 10×10 固定で、
+       依存の深さの下限・最初から動かせる本数の上限・長く曲がった
+       矢印の割合の下限を段階的に厳しくする */
+    function levelCfg(L) {
+      var N = Math.min(L + 2, 10);
+      var lenMax = Math.min(N + 3, 12);
+      var avgLen = (3 + lenMax) / 2;
+      var target = Math.round(0.65 * 6 * N * N / avgLen);
+      var extra = Math.max(0, L - 8);
+      return {
+        N: N, target: target, lenMax: lenMax, level: L,
+        minLayers: extra > 0 ? Math.min(5 + extra, 11) : 0,
+        maxFree: extra > 0 ? Math.max(10, 22 - 2 * extra) : Infinity,
+        minBent: extra > 0 ? Math.min(0.15 + 0.05 * extra, 0.45) : 0
+      };
+    }
     var leftOf  = { 0: 2, 2: 1, 1: 3, 3: 0 };
     var rightOf = { 0: 3, 3: 1, 1: 2, 2: 0 };
     var backOf  = { 0: 1, 1: 0, 2: 3, 3: 2 };
@@ -283,7 +334,20 @@
        後から置いた矢印が先の矢印を塞ぐため依存関係が生まれ、
        逆順に除けば必ず全て取り除ける。
        ================================================================ */
+    var blockBias = false;   // 高レベル時：今フリーな矢印の進路を塞ぐ配置を優遇する
     function tryPlace(occ, lenMax) {
+      var freeRaySet = null, placedCount = 0;
+      if (blockBias) {
+        freeRaySet = new Set();
+        var seenD = new Set(), defsNow = [];
+        occ.forEach(function (df) { if (!seenD.has(df.id)) { seenD.add(df.id); defsNow.push(df); } });
+        placedCount = defsNow.length;
+        defsNow.forEach(function (df) {
+          var ray = rayCells(df.cells, df.headDir), blocked = false;
+          for (var q = 0; q < ray.length; q++) { if (occ.has(keyOf(ray[q]))) { blocked = true; break; } }
+          if (!blocked) ray.forEach(function (c) { freeRaySet.add(keyOf(c)); });
+        });
+      }
       var start = null, t, f, i, j, edge;
       for (t = 0; t < 30 && !start; t++) {
         f = ri(6);
@@ -308,6 +372,7 @@
           var dd = dirIJ(cand[ci][0]);
           var oi = cur.i + dd[0], oj = cur.j + dd[1];
           if (oi < 0 || oi >= boardN || oj < 0 || oj >= boardN) cand[ci][1] *= 2.4;
+          if (freeRaySet && freeRaySet.has(keyOf(stepCell(cur, cand[ci][0])))) cand[ci][1] *= 6;
         }
         var moved = false;
         while (cand.length) {
@@ -332,6 +397,11 @@
       if (path.length < 3) return null;
       var ray = rayCells(path, headDir);        // 置いた時点で抜けることを保証する
       for (var r = 0; r < ray.length; r++) { if (occ.has(keyOf(ray[r])) || inPath.has(keyOf(ray[r]))) return null; }
+      if (freeRaySet && placedCount >= 6) {     // フリーな矢印を塞がない配置は大抵はね、依存を深くする
+        var blocks = 0;
+        path.forEach(function (c) { if (freeRaySet.has(keyOf(c))) blocks++; });
+        if (blocks === 0 && Math.random() < 0.85) return null;
+      }
       var adjColors = new Set();                // 隣り合う矢印と色を被らせない
       path.forEach(function (c) {
         for (var d2 = 0; d2 < 4; d2++) { var a = occ.get(keyOf(stepCell(c, d2))); if (a) adjColors.add(a.colorIdx); }
@@ -358,13 +428,49 @@
       }
       return true;
     }
+    /* 盤面の難しさの指標：依存の深さ（何段階に分けて解けるか）、
+       最初から動かせる矢印の数、長く曲がった矢印の割合 */
+    function boardMetrics(defs) {
+      var occM = new Map();
+      defs.forEach(function (df) { df.cells.forEach(function (c) { occM.set(keyOf(c), df); }); });
+      var rest = defs.slice(), layers = 0, free0 = -1;
+      while (rest.length) {
+        var rem = rest.filter(function (df) {
+          var ray = rayCells(df.cells, df.headDir);
+          for (var r = 0; r < ray.length; r++) { if (occM.has(keyOf(ray[r]))) return false; }
+          return true;
+        });
+        if (!rem.length) break;
+        if (free0 < 0) free0 = rem.length;
+        rem.forEach(function (df) { df.cells.forEach(function (c) { occM.delete(keyOf(c)); }); });
+        rest = rest.filter(function (df) { return rem.indexOf(df) < 0; });
+        layers++;
+      }
+      var bent = 0;
+      defs.forEach(function (df) {
+        if (df.cells.length < 6) return;
+        var bends = 0, prev = null;
+        for (var k = 1; k < df.cells.length; k++) {
+          var a = cellCenter(df.cells[k - 1].f, df.cells[k - 1].i, df.cells[k - 1].j);
+          var b = cellCenter(df.cells[k].f, df.cells[k].i, df.cells[k].j);
+          var dv = b.sub(a);
+          if (prev && !dv.equals(prev)) bends++;
+          prev = dv;
+        }
+        if (bends >= 2) bent++;
+      });
+      return { layers: layers, free0: free0 < 0 ? 0 : free0, bentRatio: defs.length ? bent / defs.length : 0 };
+    }
     function generateBoard(cfg) {
       var needCross2 = Math.ceil(cfg.target * 0.4);
-      var needCross3 = cfg.N >= 5 ? 3 : 2;
+      var needCross3 = cfg.N >= 5 ? Math.max(3, Math.round(cfg.target * 0.08)) : 2;
+      blockBias = cfg.minLayers > 0;
+      var maxBoards = blockBias ? 12 : cfg.N >= 9 ? 30 : cfg.N >= 7 ? 45 : 60;
+      var failCap = blockBias ? 6000 : cfg.N >= 9 ? 3500 : 6000;
       var best = null, bestScore = -1;
-      for (var b = 0; b < 60; b++) {
+      for (var b = 0; b < maxBoards; b++) {
         var occ = new Map(), defs = [], fails = 0;
-        while (defs.length < cfg.target && fails < 6000) {
+        while (defs.length < cfg.target && fails < failCap) {
           var df = tryPlace(occ, cfg.lenMax);
           if (df) { df.id = defs.length; defs.push(df); df.cells.forEach(function (c) { occ.set(keyOf(c), df); }); }
           else fails++;
@@ -372,11 +478,13 @@
         if (defs.length < cfg.target) continue;
         var c2 = defs.filter(function (d) { return d.facesCount === 2; }).length;
         var c3 = defs.filter(function (d) { return d.facesCount >= 3; }).length;
-        var score = c2 + c3 * 2;
+        var m = boardMetrics(defs);
+        var okCross = c2 + c3 >= needCross2 && c3 >= needCross3;
+        var okHard = m.layers >= cfg.minLayers && m.free0 <= cfg.maxFree && m.bentRatio >= cfg.minBent;
+        var score = c2 + c3 * 2 + m.layers * 4 + m.bentRatio * 10 - Math.max(0, m.free0 - 4) * 1.5;
         if (score > bestScore) { bestScore = score; best = defs; }
-        if (c2 + c3 >= needCross2 && c3 >= needCross3 && solvable(defs)) return defs;
+        if (okCross && okHard && solvable(defs)) return defs;
       }
-      if (best && solvable(best)) return best;
       if (best) return best;
       var occ2 = new Map(), defs2 = [], fails2 = 0;   // 最終手段：条件を緩めた生成
       while (defs2.length < Math.max(6, cfg.target - 4) && fails2 < 8000) {
@@ -521,6 +629,7 @@
     }
     function setupBoard(newDefs) {
       anims = [];
+      selectDef(null);
       clearArrowMeshes();
       defs = newDefs;
       occ = new Map();
@@ -557,8 +666,31 @@
       if (toastTimer) clearTimeout(toastTimer);
       toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 1600);
     }
+    /* ---- 選択（1回目のタップ）と実行（2回目のタップ＝ダブルタップ） ----
+       選択しただけではミスにならない。選択中は動かせる／塞がれているが
+       光の色で分かり、塞いでいる矢印も点滅して示す */
+    var selected = null, lastSelectAt = 0;
+    function selectDef(df) {
+      if (selected && selected.mat) { selected.mat.emissiveIntensity = 0; selected.mat.emissive.setRGB(0, 0, 0); }
+      selected = df;
+      var info = document.getElementById('selInfo');
+      if (!df) { info.hidden = true; return; }
+      lastSelectAt = performance.now();
+      var blockers = blockersOf(df);
+      if (blockers.length === 0) {
+        info.textContent = '動かせます ― もう一度タップで発射';
+        info.className = 'ok';
+      } else {
+        info.textContent = '進路が塞がれています ― 実行するとミスになります';
+        info.className = 'ng';
+        blockers.forEach(function (a) { startFlash(a); });
+      }
+      info.hidden = false;
+      tone(920, 0, 0.06, 'sine', 0.045);
+    }
     function attemptMove(df) {
-      if (state !== 'playing' || !df.alive || anims.length) return;
+      if (state !== 'playing' || !df.alive) return;
+      if (anims.some(function (a) { return a.kind === 'exit'; })) return;
       var blockers = blockersOf(df);
       var others = blockers.filter(function (a) { return a !== df; });
       if (blockers.length === 0) {
@@ -848,6 +980,8 @@
       var hearts = '';
       for (var n = 0; n < 3; n++) hearts += '<span class="heart' + (n < 3 - mistakes ? '' : ' off') + '">♥</span>';
       document.getElementById('hearts').innerHTML = hearts;
+      document.getElementById('levelNum').textContent = level;
+      document.getElementById('sizeInfo').textContent = boardN + '×' + boardN;
       var alive = defs.filter(function (d) { return d.alive; });
       document.getElementById('remainNum').textContent = alive.length;
       var c2 = alive.filter(function (d) { return d.facesCount === 2; }).length;
@@ -855,21 +989,27 @@
       document.getElementById('crossStat').textContent = '2面×' + c2 + '本 ・ 3面以上×' + c3 + '本';
     }
     function showEnd(clear) {
-      document.getElementById('endTitle').textContent = clear ? 'クリア！' : 'ゲームオーバー';
-      document.getElementById('endMsg').textContent = clear
-        ? 'すべての矢印を立方体から抜き切りました。'
-        : 'ミスが3回になりました。同じ問題でもう一度挑戦できます。';
+      selectDef(null);
+      document.getElementById('endTitle').textContent = clear ? 'レベル' + level + ' クリア！' : 'ゲームオーバー';
+      if (clear) {
+        document.getElementById('endMsg').textContent = level >= 8
+          ? 'すべての矢印を抜き切りました。次のレベルは 10×10 のまま、生成条件がさらに厳しくなります。'
+          : 'すべての矢印を抜き切りました。次のレベルは ' + Math.min(level + 3, 10) + '×' + Math.min(level + 3, 10) + ' です。';
+      } else {
+        document.getElementById('endMsg').textContent = 'ミスが3回になりました。レベル' + level + ' を最初からやり直せます。';
+      }
+      document.getElementById('btnNext').hidden = !clear;
       document.getElementById('endVeil').hidden = false;
     }
     function hideEnd() { document.getElementById('endVeil').hidden = true; }
-    var modeKey = 'normal';
-    function currentCfg() { return MODES[modeKey]; }
+    var level = 1;
     function newGame() {
-      var cfg = currentCfg();
+      var cfg = levelCfg(level);
       boardN = cfg.N;
       buildCube();
       setupBoard(generateBoard(cfg));
       setDefaultDist();
+      resetPan();
     }
     function resetBoard() {
       defs.forEach(function (df) { df.alive = true; });
@@ -881,6 +1021,11 @@
        ================================================================ */
     var rx = 0.55, ry = -0.65, trx = 0.55, try_ = -0.65;
     var dist = 12, tdist = 12;
+    /* 視点パン：画面の x/y 方向への平行移動のみ（回転なし・奥行き移動なし）。
+       カメラと注視点を同じだけずらすので、視線の向きは変わらない */
+    var panX = 0, panY = 0, tPanX = 0, tPanY = 0, lastTick = 0;
+    var panHeld = { x: 0, y: 0 };
+    function resetPan() { panX = 0; panY = 0; tPanX = 0; tPanY = 0; panHeld.x = 0; panHeld.y = 0; }
     var raycaster = null, ndc = null;
     function defaultDist() {
       var w = glEl.clientWidth || 1, h = glEl.clientHeight || 1;
@@ -900,9 +1045,35 @@
       ndc.set(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1);
       raycaster.setFromCamera(ndc, camera);
       var hits = raycaster.intersectObjects(hitMeshes, false);
-      if (!hits.length) return;
+      if (!hits.length) { selectDef(null); return; }
       var df = defs[hits[0].object.userData.defId];
-      if (df) attemptMove(df);
+      if (!df || !df.alive || state !== 'playing') { selectDef(null); return; }
+      if (selected === df && performance.now() - lastSelectAt < 550) {
+        selectDef(null);          // 同じ矢印を素早く2回タップ → 実行
+        attemptMove(df);
+      } else {
+        selectDef(df);            // 1回目は選択のみ（ミスにならない）
+      }
+    }
+    /* 画面端の矢印ボタン：押している間だけ視点スクロールが続く（滑らか） */
+    function initPanButtons() {
+      var defs4 = [
+        ['panUp', 0, 1], ['panDown', 0, -1], ['panLeft', -1, 0], ['panRight', 1, 0]
+      ];
+      defs4.forEach(function (cfg) {
+        var el = document.getElementById(cfg[0]);
+        if (!el) return;
+        function on(e) { e.preventDefault(); ac(); panHeld.x = cfg[1]; panHeld.y = cfg[2]; el.classList.add('held'); }
+        function off() {
+          if (panHeld.x === cfg[1] && panHeld.y === cfg[2]) { panHeld.x = 0; panHeld.y = 0; }
+          el.classList.remove('held');
+        }
+        el.addEventListener('pointerdown', on);
+        el.addEventListener('pointerup', off);
+        el.addEventListener('pointercancel', off);
+        el.addEventListener('pointerleave', off);
+        el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      });
     }
     function initInput() {
       raycaster = new THREE.Raycaster();
@@ -936,7 +1107,7 @@
         } else if (pointers.size === 2) {
           var ps = Array.from(pointers.values());
           var nd = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
-          if (pinchD > 0) { tdist = dist = Math.max(boardN * 1.5, Math.min(boardN * 5, dist * (pinchD / nd))); }
+          if (pinchD > 0) { tdist = Math.max(boardN * 1.15, Math.min(boardN * 5.5, tdist * (pinchD / nd))); }
           pinchD = nd;
           moved = 99;
         }
@@ -951,7 +1122,7 @@
       el.addEventListener('pointercancel', endPointer);
       el.addEventListener('wheel', function (e) {
         e.preventDefault();
-        tdist = dist = Math.max(boardN * 1.5, Math.min(boardN * 5, dist * (1 + e.deltaY * 0.001)));
+        tdist = Math.max(boardN * 1.15, Math.min(boardN * 5.5, tdist * (1 + e.deltaY * 0.001)));
       }, { passive: false });
       window.addEventListener('resize', onResize);
     }
@@ -968,9 +1139,33 @@
           rx += (trx - rx) * 0.18; ry += (try_ - ry) * 0.18;
         }
         if (Math.abs(tdist - dist) > 0.001) dist += (tdist - dist) * 0.2;
+        /* 視点パン：押している間、目標位置が一定速度で進み、現在位置が
+           滑らかに追う。カチッとした移動にはならない */
+        var dt = lastTick ? Math.min(0.05, (now - lastTick) / 1000) : 0;
+        lastTick = now;
+        if (panHeld.x || panHeld.y) {
+          var spd = dist * 1.15 * dt, maxPan = boardN * 0.9 + 2;
+          tPanX = Math.max(-maxPan, Math.min(maxPan, tPanX + panHeld.x * spd));
+          tPanY = Math.max(-maxPan, Math.min(maxPan, tPanY + panHeld.y * spd));
+        }
+        panX += (tPanX - panX) * 0.22;
+        panY += (tPanY - panY) * 0.22;
         world.rotation.set(rx, ry, 0);
-        camera.position.set(0, 0, dist);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(panX, panY, dist);
+        camera.lookAt(panX, panY, 0);
+        /* 選択中の矢印を脈打つ光で示す（緑＝動かせる／赤＝塞がれている） */
+        if (selected && selected.alive && selected.mat) {
+          var flashing = false;
+          for (var fi = 0; fi < anims.length; fi++) {
+            if (anims[fi].kind === 'flash' && anims[fi].df === selected) { flashing = true; break; }
+          }
+          if (!flashing) {
+            var pulse = 0.55 + 0.45 * Math.sin(now * 0.008);
+            selected.mat.emissiveIntensity = 1;
+            if (blockersOf(selected).length === 0) selected.mat.emissive.setRGB(0.10, 0.36 + 0.30 * pulse, 0.15);
+            else selected.mat.emissive.setRGB(0.40 + 0.30 * pulse, 0.07, 0.07);
+          }
+        }
         stepAnims(now);
         renderer.render(scene, camera);
       } catch (e) {
@@ -982,6 +1177,7 @@
       initFaceVecs();
       initThree();
       initInput();
+      initPanButtons();
       newGame();
       // UI 配線
       document.getElementById('btnStart').addEventListener('click', function () {
@@ -1005,7 +1201,8 @@
         if (e.target === this) document.getElementById('btnStart').click();
       });
       document.getElementById('btnNew').addEventListener('click', function () { hideEnd(); newGame(); if (state !== 'ready') state = 'playing'; });
-      document.getElementById('btnNew2').addEventListener('click', function () { hideEnd(); newGame(); state = 'playing'; });
+      document.getElementById('btnNext').addEventListener('click', function () { hideEnd(); level++; newGame(); state = 'playing'; });
+      document.getElementById('btnRetryLevel').addEventListener('click', function () { hideEnd(); newGame(); state = 'playing'; });
       document.getElementById('btnReset').addEventListener('click', function () {
         hideEnd(); document.getElementById('startVeil').hidden = true;
         anims = []; resetBoard(); state = 'playing';
@@ -1013,9 +1210,9 @@
       document.getElementById('btnAgain').addEventListener('click', function () {
         hideEnd(); anims = []; resetBoard(); state = 'playing';
       });
-      document.getElementById('btnView').addEventListener('click', function () { trx = 0.55; try_ = -0.65; setDefaultDist(); });
+      document.getElementById('btnView').addEventListener('click', function () { trx = 0.55; try_ = -0.65; setDefaultDist(); resetPan(); });
       document.getElementById('selMode').addEventListener('change', function () {
-        modeKey = this.value;
+        level = this.value === 'hard' ? 3 : 1;
         hideEnd(); newGame(); if (state !== 'ready') state = 'playing';
       });
       tick();
