@@ -186,6 +186,35 @@
         border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6;
       }
       #errBox[hidden] { display: none; }
+      /* ---------- 生成進捗バー＋スケート猫 ---------- */
+      .genCard { max-width: 400px; }
+      #genPct { font-variant-numeric: tabular-nums; color: #1f7fb8; }
+      .genStage { position: relative; margin: 30px 2px 6px; padding-top: 40px; }
+      #genCat {
+        position: absolute; top: 0; left: 26px; width: 52px; height: 52px;
+        transform: translateX(-50%); z-index: 2; pointer-events: none;
+        transition: left .18s linear;
+      }
+      #genCat img {
+        width: 52px; height: 52px; border-radius: 50%; object-fit: cover; display: block;
+        border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(30,90,140,.35);
+        animation: skateBob 0.9s ease-in-out infinite alternate;
+      }
+      @keyframes skateBob {
+        from { transform: translateY(0) rotate(-3deg); }
+        to { transform: translateY(-4px) rotate(3deg); }
+      }
+      @media (prefers-reduced-motion: reduce) { #genCat img { animation: none; } }
+      .genTrack {
+        height: 14px; border-radius: 999px; overflow: hidden;
+        background: rgba(120,180,225,.35); border: 1px solid var(--plate-line);
+      }
+      #genBar {
+        height: 100%; width: 0%; border-radius: 999px;
+        background: repeating-linear-gradient(115deg, #2b9fd8 0 14px, #1f83bd 14px 28px);
+        transition: width .18s linear;
+      }
+      .genNote { font-size: 12px; color: var(--page-sub); margin: 8px 0 0; }
     </style>
   </head>
   <body>
@@ -240,9 +269,14 @@
         </div>
 
         <div class="veil" id="genVeil" hidden>
-          <div class="card" style="text-align:center">
-            <h2>問題を生成中…</h2>
+          <div class="card genCard" style="text-align:center">
+            <h2>問題を生成中… <span id="genPct">0%</span></h2>
             <p class="sub" id="genMsg" style="margin-bottom:0">盤面を作っています。</p>
+            <div class="genStage">
+              <div id="genCat"><img src="data:image/webp;base64,UklGRhoRAABXRUJQVlA4IA4RAAAwSACdASqgAKAAPmEskkakIqGhKBZqqIAMCWMAzjC0XmAxrqekDbxc8V6Wv9Dvt3oAdK3/gq5b4n+RP0d7T/0/2/f6ryGdZf730R/kX3m/O/3n9ufjH/Y/7zwx+QX9r6gX4t/Nv8b+XHEYAA/Nv63/sf7r+Q/xO9pfSD7J+wB/Mv6n/uvzR5tHzP9gPgA/OH/W9RL/V/zP5h+5j9E/xn/U/y/wD/zH+rf7r++fvh8Ynr4/bj//+6P+0X//amrcvnxGjVcPe4uqSWLVhYvgJwX+D/UUGptHgnxJbC1APIoKI8+mKUbboiV/oRI9fgvBXg9cj57HB9/IRielc9+V7zbMeLx+Z1aJMPT32WeBRjpS/48WFB0ZZoHnT0XejN0Z7fGuyyocVdy3fL6e+MPL3Hk/0vV/c5bsAgFMp3gJ3zT1JGOawIf3I2qLD5MAkD9K4sgUR1XVFE9HoeyKgrjcQSBVFORnKYIvTOPpEUvVGMXIL1bJzCkuePhyHUC3cAlB4mwnxqTzT7i2jv1TiN+Z5klKlRJJZhWlvAqMuPwN6ZRRmkbAtMcAs8/yfFBefLgG3OPEOcPF/5nW2uZglTTXwcRru/gzxu50XyYeYOsb4zCn24xm2TCmSpObDXslfPzGk2dIJh9Ebc45tZJKqiq1gcvHxQC32NUx34Ng7z2iu+ygH90B/4sjeU4ZKHI0622Vn5MKc27WiD+zmtcrmKpMfxxNVQR4L07f+Cp0qNqpSqAGKGtF6CTGlbkT4Fops11ToS88hY4Z89S7WgYAAP784ySmbuJ2E0xrAZXNqymd+PQUuSt/xOYKIiOxMrLJgcSLmT6zkRulzJyfEcy0faLW/SkfpPBL3YRLRim+aKJWVF/gJmHXauJRMwinpRewqdtCX60xej4GF174MXTgAD3qXifMgltE830sTRdXNus+9G+vWsRRoivWkeAhZhu/r33xdaawNKPdoyX4+FEcBTYlshTnheob/uZe1mFEWOvvXMnoydU4ZnJX0Q4cmNGHm4uuJyP+fEEWOT2gM6h3Dc/vg50XAYMrimh2GSkDU6azufj5yWQGB/J9jYIKn4kyaoyN1YhsKH/B1avTiqB2m6Kic1XPy6z58dxKEMAZU6X2JyrUrxnBb4cGwmEBGMZqCHQaTDIeGQTmf39hvRov6hpHHpQv5R32JV5+2oyULsWUNVBh74+guHVwZeWiuF2PmmczSMfrv3/Rml04vcIhp+cuokT2hxL3X7E7iMiZoMBXwIlshXHhctuz+wFoMM373mJNKj2BRU1J9X3c3mD8ILxj1jtof+Sq/vj7sSB4yD/vm3ar2sZTyV2duvqt9q1VFaH1MVnRx91hHSaAHK4tbWxPNmG/H6ZLFm0gp8tH99uydT9+rQ0WW1tOVKWCcBXf0xZHbH17xUfy01xO35uE2Ci7wRqBBnXaUMg6nbQLx6CZEGUjSmX3yggjOZdgY9Ut1zE703Y07yP1uRaIi0FuFiQLi/WM0CPikMN4KiFMDkau16rI5jBFsD4WkfStAq4XcZljjLMrzjl4VvVlJ0FfBscmN+ykiRewBwcE7/wVff+L3XUQTl85BsRbEuvLRdC6mzgdINPIQQHY4jYLDh7IUn9ubcT1BC8jEZERVO+wzuUBD5RN9FVRGg8+1uauvbIAWGHUz+Qr1F4d/RtlyeuQhuS7Rcj2pMATQ4h/u0n0El+5GJkZuk5Yln2T+mFXg+yqvsmYyMK0wep0iGKQxpiGXz8bCjzXpmjlkqKcdtpWH1hXCjEuM7h7Kn9+iRykQSOVsQvylv0Pw9D6NSMI4gK6fYTDVOzmu8VIC5Hb44eKvIUTOuE0Q0L4cwpxgs/0xZhvugTPOmVh2aLXzpzrc2LinYtjzJidk2hJblpYBM+treEn4DC4+FKJNt5FvyyAPgWW9ryylHRjnzXRmu7oGFilHJUACHLd85lGwoRezqGca6em3kwSdgt/nLgAfJP/6/eDJvBZBAKNFEZ7+oL/6jS94SbD7tJwaJuINKvYY3bEJhvI3G6pNuFtTQB1b3ZgLTF6ZNiNykWMglrxqf+y9YfVkDtvsRPC9MM8wv3rCVCUNeYcdcJwKNnSwb2nBZK6izO1oPWeVjqQ5njHAnlc2mdItviL4PNPG3iC1QcNGegZ7l/0og185AMFVM/hMcQrTIxqIg+yZmB+pUE6r4JTMyHWlQAt/Az9KJPf4HyZb8gYvN77RsyQ9UFnyoyoby6kF7o0Wbpdp5BvaCElCmram31fBwsjWmlQ3lRhuhR6hd66LfCrcoCzRqd5QfzO4gvE/HiPz4qH/isAfn+j31gDNAHbURc9cIwmNhVPBg6FwWwOfds8V8XKPAZcO0VUBckubkA9pc+aWWVqpUKuJ+M8SAyssqNmsgJo1M4CiV87EUTr0IfGP4ryHPktY7ayElqdiZLj8eHG5ZW8RtWawE3Rl2Tt+mwDAFsDHCcmuIe91QXcpOkBX2a+unFC0Q3rJqGE6GnS1S26XsVpBdom/AOayT0FZVh5opQBAPqmPLhTEoef2Jo3vrHpAfAgWo1KrsF7P5U0JbG67+UKFGNZFnm8USA3ystp+5L0vkn112u44O1aEeMuCKMlkvRq6YY/2etaU/pi7umpqZf2o2B+7cdgx+bq7USi7ugUzn/IJ+pX+kUaPfWUpYDJqjC8E2L2aIWo946EgbSNF0pHaifmq8+/cYfdRuU7WT5aYgpwoEV+4+El8c+d7X3NlEudIOm2g6Sy1YXL3XVa7m6ENwU7PkzaRKBX68yzYEmMa1xiz9Y3lJqmc3R9eLvFvKCtAu/jCNPLUGfKbbC+0+t1iKrwP3jdah9QHI2hCgx4H3AYUEgahB4Mt9sMzc+JmOLFN8gDUnV7ANT7hI62Vdy+s1bQqpYdyIR0G0mqLNicGDnGBchhHaH0bo/U0sLeBnHSPPDFmu3mqbP2/QdTwNx3mT0jpVuRiGbDfiDvrby3f+E3BGQ/XBNV99zzMLFLoT2Z+BfutGmmZrsFCN5rAl/h6mU4JOSLbmpTlJNsLa/xujXTIyxxlWZSAy+HitWU6sRronG2ryKqIa3v9bIGIDR/Vgg8UZgj1qS2Js8ipmn3NNlvS4qtBoth5Ca15vnO7Tvr4qtMQAlPpXYQshFHjhce3pS5pF7P/Kc0eQD6E6E9HD3qsJNwl6gqTVzHp8Zlu4LNtWSzEK3za4z6zx1l0bpZylNSUzfjxXWYHESws3EmkvEXVs4XkS7vPBkcdjrz/JoRK/pjQs3WXlEgODt5dkc1rJEzmU06hb1+Oslx8EsvoIawceakPesG6mxaWyRnzi4VcnGFvFsJunDjVy6vpjlp8ntQNBIfXxZwznKKFnBph6wf3FAh6FkkIxkydUh5OWC3QM52hle8cIhbuIhrKhjqNO7vN2grMOQBxwZ8zTgB+NsDcoKvVn2uwCqNY/p3tWqVfxcRGawoTJHeHMrpnHC6+fLwK/e7rnNjEj5EJq4XAKZjoUdS5JdqguI9BP9P8tZb834pwpN1/SJcRSJJughV+xwc6YwkJxW0/NIayZKqSqUUjf7KasJC2LqqtGvH0VfWbR72hzN6dZYktKh9/yPdlHV8eWszyY+6pzZsa0d3lvY4Vr5DOoTC7zWo7CbOFZxfKRjci6gJB4pVI/NMCLL6w0ND9J0qz+n6scxM8F87nOVa14JWcrMst+efLMAytBYdRDv2f119VlrTXcJ+NZqu5Z07bDz2ysOzwkUlbEiSyi35f7xJa/Baia3WnB5pwBiqAEhMSOCi1yJelNM1g+yniCIq0wKb1ZrMTqO0i6nI7AoBREWRkRpXsMhWhM4Q8GfiJ0a1f3SRWfn7ILSTrgDAKS/+SJMQqI1h/IN5hsrKCWjpYOViS+OeD6OGBikbGHJbFNwmiiXIq83fi9/41p2ZyqnxsaUxCNgLwdwdXzUu3jDd6groVJb+CLwXH5toRjmB/JsMC2V+DGYp7ELqgxr3Bv2JgzZgP3D+Gs2uFEH+e37UlurrKDNDfahJcevn8GDdZBgdHu1HAXMmCUCfHOyFKQ+UH35DBZDqA4jAopPUPGaldRD3uKM46iwHHqhPgGGQ9YB5rMTskkmiDuXUGj0P//vhlB/paA06aWGYm3JnnX7RffULn6qtN4RrWQTW+K6UUdVgHx5GtD7yVlwdm/q875lSpXxVa9qHJiL6bAylwGLriKWHn6Er3/8ZQGI5Mn+NmxOnlEB333HG0FZB33qVwvXKxh480H4HAfwhuVns0kxhUYPdhyzS5c/Mk2LohhY2PiIcsJ+XzSQCJfOqTNYUAbAHrHyxOrAPzb+1BobONDupR/q8EYuo9jlvfDOboCVeROoCr+WTR+LVLILr3599fP9VcnKbgtywAlyyFm/364i16fHRTnZEm85p6TO47pScoLCwiVdlRiO6S4Fp+37ga1L6zo778/oN0UCIhXt1eJs0ZFmb1b3FpaMyGYax5edqUDAE0PwhUhrPrUUJSQHB1AYXyLvmGVHxS44A8cEFAZGuQovk0oiGRZKBvW18oaCLuZlrzO6dZL5U/bhiqT8EzkTlYFxLD7sPalTm6Qq0QLuM/oc8pZLeX5fSJB7D7gSuc+dEJx46olE5tjjwF8rz3j0yz5SWXGNJv0w7N/hRznIjv9mOOqWaC/AZVlztJbhLA2DjVR1OF58VKwyJjAk6ZqOqO0xlS8H5mhHUPs8tbNP0d23wUv9PV3FapEQUEpXrlzEpbmNxmlF8jT96a3ixU3Jo4m6FIuwF5p/1QNMFws27lzi/eTaPr2HClUWFTEDydWzb++qsP0KJwW7G1DiPy8TaRQPhwyEeOujT7NyLD7n+666FqU7piWGk1Fh1vWHvRHV6MKv6IHVKvErRPAIuYS60e31geP1gZXaohcpQKR4IR2GMgBIb5wwqDttnzgdxnbWCJsQBKFT6V+AUtxARg08c475VJzBhZHsQDJNWw8hOZq/cnqmDMue3y1x/pmUwRVMDHzAKs/P3dgl8ms0AexQ00jnGn45Okf7r1Znn7ohBRSZjLYvEBGYGf4upd3GXu0Nze1RnQd5b95efQkkV4R8DL8f5y4RltOBhCV1rEXYEwGTyohVOPrOF5KFwArbFV7ke8WP5ZnqsaG/YH8MQXi2YozXxWGIkHM6IWIG3XJ33dlSrEY7pkTrf1tgMHFZEa4DTaa6jy7tCCO9icgj2u8dRYye+BKhufOxhIrd4fo9s8YdnHJ8DGK1zda4KGlBSctgJcwI0hKxduoZE2I7OIg5QbxsYZOTKK6gSvJrwuWGZsYV9T8A/O+5w2e5jimQxIxP/9DHQkhcTt0Yd1j+nXZztiB94nqVfYuameSQ7A3qk6+Dc6hC5JuBunGmspkeTUe6Rm7lmIGX8rHZX7wAedR0wvgYQqurX5O7khuLh/3GDuSjhc3k5hMrrukByLMsHvWX+Kek7J5BgPhWf9xUfypOtWzv6h+WMTHkgnT/8mbG69qq8dtx9ycg+JheS2UW3ElNGnf9nIL1ZH3DTGQlnnh7ae3eENkBNHCr7dkm84fzrpw0d/tnegztDQIo4Fy0C/1xU2Z1H34iy21fxTHFni879cV3rrvjYc+t2rqVNuL2QvKZl3aDUUBsR/vHY53KmY6ewKdCRQnsFsc5d7/UAvLoyvDdpV0NsR8lSZhm8nOjngQX/kz2Uy6empt8eUL93B8DNmi72247FTr8wj05BgeOe53e7AAA57KePQC/FvZ5v4iHD8+L4HnWKvK2fOK0X5dDDbyeLgOfR6lQI0De9EvhsYnPdgPGLEM17RNy6MwFMbkHCqw3CYCPxG2D5aejH2/lHxyCNiLkAAAAA" alt="スケートで滑るモフモフの白い猫" /></div>
+              <div class="genTrack"><div id="genBar"></div></div>
+            </div>
+            <p class="genNote">バーは盤面の詰め込み具合（目標占有率に対する実測の充填割合）です。猫も進捗に合わせて滑ります。</p>
           </div>
         </div>
 
@@ -277,7 +311,7 @@
           <p><b>生成の仕組み</b>は元の2D版と同じく「最後に取り除く矢印から逆順に置く」方式で、必ず解ける盤面になっています。難しさの調整として、先端が外周にあって外向きの矢印（進路が空っぽで絶対に塞がれない）は生成時に避け、尾が外側・先端が内側寄りで進路の直線が長く他の矢印と交わりやすい配置を優遇しています。そのため最初から動かせる矢印は少なく、順番に解きほぐしていく感覚を重視しています。</p>
           <p><b>視点の操作</b>：ドラッグで回転、ピンチ（PCではマウスホイール）で拡大・縮小できます。画面の上下左右にある矢印ボタンを長押しすると、立方体を回転させずに視点だけが滑らかにスクロールします。これは面の移動ではなく、拡大して画面の外にはみ出した部分を見るための、画面の縦・横方向だけの移動です（奥行き方向には動きません）。</p>
           <p><b>発射はダブルタップ方式</b>です。1回目のタップで矢印が選択され、動かせる矢印は緑に、塞がれている矢印は赤に光ります。塞がれている場合は、塞いでいる矢印も点滅して分かります。選択しただけではミスにはなりません。もう一度タップすると実行され、塞がれた矢印を実行したときだけミスになります。何もない所をタップすると選択が外れます。</p>
-          <p><b>無限ラダー</b>：クリアすると次のレベルへ進めます。タイトル画面のトグルで、開始レベルを1〜50から選べます。レベル1〜8で1面が3×3から10×10まで大きくなり、レベル9以降も1レベルごとに2ずつ（12×12、14×14、16×16…）際限なく大きくなります。矢印の密度は表面の占有率 約85% を目標に生成します。小さめ〜中くらいの盤面ではおおむねその水準（80〜88%程度）を保ちますが、非常に大きな盤面では到達可能な範囲でできるだけ詰めて生成するため、占有率はやや下がる場合があります。どの盤面も必ず解けることは保証されます。盤面が大きいレベルでは生成に時間がかかるため、「問題を生成中…」の表示が出ます。依存の深さ（何段階に分けて解く必要があるか）などの生成条件は、占有率と両立する範囲で段階的に締めています。</p>
+          <p><b>無限ラダー</b>：クリアすると次のレベルへ進めます。タイトル画面のトグルで、開始レベルを1〜50から選べます。レベル1〜8で1面が3×3から10×10まで大きくなり、レベル9以降も1レベルごとに2ずつ（12×12、14×14、16×16…）際限なく大きくなります。矢印の密度は表面の占有率 約85% を目標に生成します。小さめ〜中くらいの盤面ではおおむねその水準（80〜88%程度）を保ちますが、非常に大きな盤面では到達可能な範囲でできるだけ詰めて生成するため、占有率はやや下がる場合があります。どの盤面も必ず解けることは保証されます。生成を速くするため、矢印は長めに作って配置本数を減らしています（密度はそのまま）。生成中は、目標の詰め込みに対する実測の進捗バーと％が表示され、バーの上を猫がスケートで滑ります。依存の深さ（何段階に分けて解く必要があるか）などの生成条件は、占有率と両立する範囲で段階的に締めています。</p>
         </details>
       </footer>
     </div>
@@ -305,7 +339,9 @@
       { n: [0, 1, 0],  r: [1, 0, 0],  u: [0, 0, -1] },
       { n: [0, -1, 0], r: [1, 0, 0],  u: [0, 0, 1] }
     ];
-    var COLORS = ['#ef4444', '#f97316', '#f5c518', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#a3e635'];
+    /* A案：単色ツヤキャンディ用の色。白帯をやめた分、氷（淡い水色〜白）の
+       上でも輪郭がはっきり見えるよう、濃く鮮やかな色だけに揃えた */
+    var COLORS = ['#dc2626', '#ea580c', '#d97706', '#16a34a', '#0f766e', '#2563eb', '#7c3aed', '#db2777', '#4d7c0f'];
     var LIFT = 0.16;               // 矢印が面から浮く高さ（マス=1）
     /* 無限ラダー：レベル → 盤面設定。
        レベル1〜8で 1面が 3×3→10×10 に拡大し、レベル9以降も
@@ -317,12 +353,17 @@
     var TARGET_OCC = 0.85;
     function levelCfg(L) {
       var N = L <= 8 ? L + 2 : 10 + 2 * (L - 8);
-      var lenMax = Math.min(N + 3, 22);
-      var avgLen = (3 + lenMax) / 2;
+      /* 高速化の主軸：矢印を長くして配置本数を減らす。平均の長さを
+         従来（最小3・最大 N+3）の約1.6〜1.8倍に伸ばし、同じ占有率
+         （約85%）でも試行回数＝本数が減るので生成が速くなる。
+         長さは長い側に寄せて抽選する（tryPlace 側の偏り抽選と併用） */
+      var lenMax = Math.min(Math.max(12, N + 9), 36);
+      var lenMin = N >= 6 ? 5 : 4;
+      var avgLen = (lenMin + lenMax) / 2 * 0.94;
       var target = Math.round(TARGET_OCC * 6 * N * N / avgLen);
       var extra = Math.max(0, L - 8);
       return {
-        N: N, target: target, lenMax: lenMax, level: L,
+        N: N, target: target, lenMax: lenMax, lenMin: lenMin, level: L,
         minLayers: extra > 0 ? Math.min(5 + extra, 11) : 0,
         maxFree: extra > 0 ? Math.max(8, 20 - 2 * extra) : (L >= 7 ? 14 : L >= 5 ? 16 : Infinity),
         minBent: extra > 0 ? Math.min(0.15 + 0.05 * extra, 0.45) : 0
@@ -420,7 +461,7 @@
         if (!occ.has(f + '_' + i + '_' + j)) start = { f: f, i: i, j: j };
       }
       if (!start) return null;
-      var lenT = genMinLen + ri(lenMax - genMinLen + 1);
+      var lenT = genMinLen + Math.floor(Math.pow(Math.random(), 0.55) * (lenMax - genMinLen + 1));   // 長い矢印に寄せて抽選（本数を減らして高速化）
       var path = [start];
       var inPath = new Set([keyOf(start)]);
       var cur = { f: start.f, i: start.i, j: start.j };
@@ -507,7 +548,7 @@
          最初から動かせる本数が減る（解きほぐし感を強める） */
       var freeRaySet = freeRayCache;
       var raySet = new Set(bestRay.map(keyOf));   // 尾が自分の進路を塞がないようにする
-      var lenT = genMinLen + ri(lenMax - genMinLen + 1);
+      var lenT = genMinLen + Math.floor(Math.pow(Math.random(), 0.55) * (lenMax - genMinLen + 1));   // 長い矢印に寄せて抽選（本数を減らして高速化）
       var path = [bestH];
       var inPath = new Set([keyOf(bestH)]);
       var s0 = stepCell(bestH, backOf[bestD]);    // 最初の1歩は先端の向きの真後ろ（向きを確定させる）
@@ -617,9 +658,25 @@
        （貪欲法ソルバーの合格）だけを必須条件とするベストエフォート方式。
        候補盤面を試行予算の範囲で複数作り、解けるものの中で最も
        占有率の高い盤面を返す。面またぎ・依存の深さなどの条件は
-       占有率と両立する範囲でのみ締める */
-    function generateBoard(cfg) {
+       占有率と両立する範囲でのみ締める。高速化のため矢印は長めに
+       生成して本数を減らし、頭・尾バイアスは合否リトライではなく
+       配置中の確率的な優遇（進路の長い先端の優先、フリー進路を
+       横切る歩の重み付け等）として効かせている。生成は非同期に
+       分割し、実測の充填割合を onProgress で進捗バーへ返す */
+    async function generateBoard(cfg, onProgress) {
       var targetCells = Math.round(TARGET_OCC * 6 * cfg.N * cfg.N);
+      /* 実進捗：これまでに得た最良盤面の充填マス ÷ 目標マス（単調増加）。
+         ダミーではなく実測ベースで、進捗バーの猫もこれに連動する */
+      var maxFrac = 0, lastYield = performance.now();
+      function report(frac) {
+        if (frac > maxFrac) maxFrac = Math.min(1, frac);
+        if (onProgress) onProgress(maxFrac);
+      }
+      async function maybeYield(frac) {
+        report(frac);
+        var now = performance.now();
+        if (now - lastYield > 40) { lastYield = now; await new Promise(function (r) { setTimeout(r, 0); }); }
+      }
       var needCross2 = Math.ceil(cfg.target * 0.4);
       var needCross3 = cfg.N >= 5 ? Math.max(3, Math.round(cfg.target * 0.08)) : 2;
       var big = cfg.N > 14;
@@ -629,27 +686,32 @@
          以前の予算（N≥11で9秒／bigで30秒・最大2枚）では Lv9≈80%、Lv13≈72%、
          Lv20≈59% まで占有率が落ちていた。予算を数倍〜数十倍に広げ、
          複数候補から最も詰まった解ける盤面を選ぶことで 80〜88% 圏へ近づける */
-      var maxBoards = huge ? 5 : big ? 7 : cfg.N >= 11 ? 36 : blockBias ? 8 : cfg.N >= 9 ? 30 : cfg.N >= 7 ? 45 : 60;
-      var failCap = huge ? Math.max(500000, cfg.target * 120) : big ? Math.max(300000, cfg.target * 90) : cfg.N >= 11 ? Math.max(150000, cfg.target * 50) : blockBias ? 10000 : cfg.N >= 9 ? 5000 : 7000;
+      var maxBoards = huge ? 4 : big ? 8 : cfg.N >= 11 ? 18 : blockBias ? 8 : cfg.N >= 9 ? 16 : cfg.N >= 7 ? 20 : 24;
+      var failCap = huge ? Math.max(300000, cfg.target * 150) : big ? Math.max(200000, cfg.target * 120) : cfg.N >= 11 ? Math.max(100000, cfg.target * 70) : blockBias ? 10000 : cfg.N >= 9 ? 6000 : 8000;
       /* 生成の時間予算：過ぎたら、その時点の最良盤面を返す（ベストエフォート）。
-         1枚目の盤面だけは予算に関係なく最後まで作る。
-         大盤面ほど長く確保する（ユーザーは待ち時間を気にしない旨を明言） */
-      var deadline = Date.now() + (huge ? 300000 : big ? 210000 : cfg.N >= 13 ? 120000 : cfg.N >= 11 ? 75000 : cfg.N >= 9 ? 30000 : 4000);
+         1枚目の盤面だけは予算に関係なく最後まで作る。矢印を長くして
+         本数を減らしたことで、従来より大幅に短い予算で足りる */
+      var deadline = Date.now() + (huge ? 180000 : big ? 120000 : cfg.N >= 13 ? 60000 : cfg.N >= 11 ? 40000 : cfg.N >= 9 ? 15000 : 4000);
       var best = null, bestCovered = -1, bestScore = -1, bestEdge = Infinity;
       for (var b = 0; b < maxBoards; b++) {
         if (b > 0 && Date.now() > deadline) break;
-        var occ = new Map(), defs = [], fails = 0, covered = 0, consec = 0;
-        freeRayCache = null; genMinLen = 3;
+        var occ = new Map(), defs = [], fails = 0, covered = 0, consec = 0, iterN = 0;
+        freeRayCache = null; genMinLen = cfg.lenMin;
         while (covered < targetCells && fails < failCap) {
+          iterN++;
+          if ((iterN & 15) === 0) await maybeYield(covered / targetCells);
           if (b > 0 && (fails & 63) === 0 && Date.now() > deadline) break;
+          /* 詰まり検出：連続失敗が続く盤面はこれ以上埋まらない。早めに
+             見切って次の候補へ移る（埋まらない盤面で予算を燃やさない） */
+          if (consec > 1500 + cfg.target * 8) break;
           /* 充填が進むほど許容する最大長を段階的に縮める。盤面が詰まった
              終盤に長い矢印ばかり狙うと失敗が量産され占有率が伸びないため、
              後半は短い矢印で隙間を埋める方へ寄せる（大盤面で特に効く） */
           var effLenMax = cfg.lenMax;
-          if (covered > targetCells * 0.82) effLenMax = Math.min(effLenMax, 5);
-          else if (covered > targetCells * 0.68) effLenMax = Math.min(effLenMax, 7);
-          else if (covered > targetCells * 0.50) effLenMax = Math.min(effLenMax, 11);
-          genMinLen = covered > targetCells * 0.55 ? 2 : 3;
+          if (covered > targetCells * 0.82) effLenMax = Math.min(effLenMax, 7);
+          else if (covered > targetCells * 0.68) effLenMax = Math.min(effLenMax, 10);
+          else if (covered > targetCells * 0.50) effLenMax = Math.min(effLenMax, 14);
+          genMinLen = covered > targetCells * 0.55 ? 2 : cfg.lenMin;
           /* 通常配置が続けて失敗したら先端優先配置に切り替える。
              序盤は進路の長い先端（内側寄り）を要求し、終盤は緩める。
              大盤面では切り替えを早め、詰まりやすい配置を積極的に使う */
@@ -664,10 +726,15 @@
             df.id = defs.length; defs.push(df); covered += df.cells.length;
             df.cells.forEach(function (c) { occ.set(keyOf(c), df); });
             consec = 0;
-            freeRayCache = computeFreeRaySet(occ);
+            /* フリー進路集合の再計算は本数に対して重い（全体で二乗オーダーに
+               なる）ため、バイアスが有効なときだけ、数本おきに更新する。
+               バイアス自体は配置中の確率的な優遇として効き続ける */
+            if (blockBias) { if (defs.length % 3 === 0 || defs.length < 12) freeRayCache = computeFreeRaySet(occ); }
+            else freeRayCache = null;
           }
           else { fails++; consec++; }
         }
+        report(covered / targetCells);
         if (defs.length < 6) continue;
         if (!solvable(defs)) continue;          // 解けることは必須条件
         /* 先端・尾の位置の統計：進路ゼロの先端（絶対に塞がれない）は少なく、
@@ -694,12 +761,13 @@
         var score = covered * 10 + c2 + c3 * 2 + m.layers * 4 + m.bentRatio * 10
           - Math.max(0, m.free0 - 3) * 2.5 - edgeHeads * 3 + tailRing * 0.3;
         if (score > bestScore) { bestScore = score; best = defs; bestCovered = covered; }
-        if (covered >= targetCells && okCross && (okHard || b >= 4)) return defs;
+        if (covered >= targetCells && ((okCross && okHard) || b >= 2)) return defs;
       }
       if (best) return best;
-      freeRayCache = null; genMinLen = 3;
+      freeRayCache = null; genMinLen = cfg.lenMin;
       var occ2 = new Map(), defs2 = [], fails2 = 0;   // 最終手段：条件を緩めた生成
       while (defs2.length < Math.max(6, cfg.target - 4) && fails2 < (cfg.N > 14 ? 200000 : 8000)) {
+        if ((fails2 & 255) === 0) await maybeYield(maxFrac);
         var df2 = tryPlace(occ2, cfg.lenMax);
         if (df2) { df2.id = defs2.length; defs2.push(df2); df2.cells.forEach(function (c) { occ2.set(keyOf(c), df2); }); }
         else fails2++;
@@ -828,7 +896,9 @@
 
     /* ================================================================
        矢印メッシュ：スティックキャンディ風の滑らかな棒。
-       白ベースに矢印色の帯がらせん状に巻きつくツイストストライプの
+       A案：白とのツートンをやめ、本体は矢印の色そのものでしっかり
+       塗る単色ツヤキャンディにした。らせんストライプは残すが、白では
+       なく「その色の明るい色調」と「濃い色調」の同系色の濃淡で表す。
        テクスチャを節・節間・頭のすべてに貼り、節の球と節間の円柱を
        同じ半径にして継ぎ目のイボイボ感をなくす
        ================================================================ */
@@ -840,21 +910,30 @@
       var g = cv.getContext('2d');
       var col = new THREE.Color(colorHex);
       var cr = Math.round(col.r * 255), cg = Math.round(col.g * 255), cb = Math.round(col.b * 255);
+      /* 同系色の明／暗：明るい側も白には寄せすぎず（+22%まで）、色の塊
+         として見える濃さを保つ。暗い側は 0.66 倍で帯の境目を作る */
+      var lr = Math.round(cr + (255 - cr) * 0.22), lg = Math.round(cg + (255 - cg) * 0.22), lb = Math.round(cb + (255 - cb) * 0.22);
+      var dr = Math.round(cr * 0.66), dg = Math.round(cg * 0.66), db = Math.round(cb * 0.66);
       var img = g.createImageData(S, S), data = img.data;
       for (var y = 0; y < S; y++) {
         for (var x = 0; x < S; x++) {
           /* 位相を (x+y) 方向に進める帯にすると、円柱に巻いたときに
              帯がねじれて進むらせんストライプ（キャンディケーンの柄）
-             になる。周期はタイルがきれいに繰り返す値にしてある */
-          var ph = ((x + y) % S) / S;
-          var dEdge = ph < 0.5 ? Math.min(ph, 0.5 - ph) : Math.min(ph - 0.5, 1 - ph);
-          var t = ph < 0.5
-            ? Math.min(1, 0.5 + dEdge / 0.05)
-            : Math.max(0, 0.5 - dEdge / 0.05);
+             になる。周期128でタイルがきれいに繰り返す */
+          var ph = ((x + y) % 128) / 128;
+          var inB = ph >= 0.5;
+          var local = inB ? ph - 0.5 : ph;              // 帯の中での位置 0〜0.5
+          var edgeD = Math.min(local, 0.5 - local) / 0.5; // 0=帯の境目、1=帯の中央
+          var soft = Math.min(1, edgeD / 0.35);          // 境目だけ柔らかく混ぜる
+          var R, G, B;
+          if (inB) { R = dr + (cr - dr) * (1 - soft) * 0.7; G = dg + (cg - dg) * (1 - soft) * 0.7; B = db + (cb - db) * (1 - soft) * 0.7; }
+          else { R = lr - (lr - cr) * (1 - soft) * 0.7; G = lg - (lg - cg) * (1 - soft) * 0.7; B = lb - (lb - cb) * (1 - soft) * 0.7; }
+          /* 帯の中央にツヤのハイライトを足して飴らしさを出す */
+          var gloss = edgeD > 0.72 ? (edgeD - 0.72) / 0.28 * 26 : 0;
           var idx = (y * S + x) * 4;
-          data[idx]     = Math.round(255 + (cr - 255) * t);
-          data[idx + 1] = Math.round(255 + (cg - 255) * t);
-          data[idx + 2] = Math.round(255 + (cb - 255) * t);
+          data[idx]     = Math.min(255, Math.round(R + gloss));
+          data[idx + 1] = Math.min(255, Math.round(G + gloss));
+          data[idx + 2] = Math.min(255, Math.round(B + gloss));
           data[idx + 3] = 255;
         }
       }
@@ -1361,32 +1440,46 @@
     /* 生成は盤面が大きいほど時間がかかるため、「生成中」表示を先に
        描画してから重い処理を行う。生成中はタップ判定を受け付けない */
     var genBusy = false, genQueued = false;
-    function newGame() {
+    /* 生成進捗の実測表示：バー・％・スケート猫を frac（0〜1）で連動させる。
+       猫はバーの左端から右端まで進み、傾きも進捗で変わる（上下の揺れは
+       CSSアニメーション側）。トラック内に収まるよう両端に猫の半径分を残す */
+    function updateGenProgress(frac) {
+      var pct = Math.max(0, Math.min(100, Math.round(frac * 100)));
+      document.getElementById('genBar').style.width = pct + '%';
+      document.getElementById('genPct').textContent = pct + '%';
+      var cat = document.getElementById('genCat');
+      cat.style.left = 'calc(26px + (100% - 52px) * ' + (pct / 100) + ')';
+      cat.style.transform = 'translateX(-50%) rotate(' + (Math.sin(pct * 0.32) * 5).toFixed(1) + 'deg)';
+      var msg = document.getElementById('genMsg');
+      if (msg && genLevelLabel) msg.textContent = genLevelLabel + '（詰め込み ' + pct + '% ／ 目標 約85%）';
+    }
+    var genLevelLabel = '';
+    async function newGame() {
       if (genBusy) { genQueued = true; return; }
       genBusy = true;
-      var cfg0 = levelCfg(level);
+      var cfg = levelCfg(level);
+      boardN = cfg.N;
+      buildCube();
+      if (renderer) {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, boardN > 20 ? 1.5 : 2));
+        onResize();
+      }
       var gv = document.getElementById('genVeil');
-      document.getElementById('genMsg').textContent = 'レベル' + level + '（1面 ' + cfg0.N + '×' + cfg0.N + '）の盤面を作っています。大きな盤面では詰め込みを優先するため、生成に時間がかかる場合があります。';
+      genLevelLabel = 'レベル' + level + '（1面 ' + cfg.N + '×' + cfg.N + '）の盤面を作っています';
+      updateGenProgress(0);
       gv.hidden = false;
-      requestAnimationFrame(function () {
-        setTimeout(function () {
-          try {
-            var cfg = levelCfg(level);
-            boardN = cfg.N;
-            buildCube();
-            if (renderer) {
-              renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, boardN > 20 ? 1.5 : 2));
-              onResize();
-            }
-            setupBoard(generateBoard(cfg));
-            setDefaultDist();
-            resetPan();
-          } catch (e) { showError(e.message || String(e)); }
-          gv.hidden = true;
-          genBusy = false;
-          if (genQueued) { genQueued = false; newGame(); }
-        }, 20);
-      });
+      await new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 20); }); });
+      try {
+        var genDefs = await generateBoard(cfg, updateGenProgress);
+        updateGenProgress(1);
+        setupBoard(genDefs);
+        setDefaultDist();
+        resetPan();
+        if (!reducedMotion) await new Promise(function (r) { setTimeout(r, 240); });   // 猫が右端まで滑り切るのを見せる
+      } catch (e) { showError(e.message || String(e)); }
+      gv.hidden = true;
+      genBusy = false;
+      if (genQueued) { genQueued = false; newGame(); }
     }
     function resetBoard() {
       defs.forEach(function (df) { df.alive = true; });
