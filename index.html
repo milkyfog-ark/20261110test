@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARROW PUZZLE | 紹介ページ</title>
+  <meta name="description" content="矢印をタップして盤面から取り除く、ブラウザで遊べるシンプルなパズルゲーム。">
+  <style>
+    :root { --bg:#14213d; --panel:#1d2d50; --text:#f4f1e8; --accent:#fca311; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: "Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;
+      line-height: 1.8;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1 { text-align: center; color: var(--accent); letter-spacing: .15em; font-size: clamp(30px,8vw,48px); margin: 24px 0 4px; }
+    .lead { text-align: center; margin: 0 0 28px; }
+    .cta {
+      display: block; width: fit-content; margin: 0 auto 40px;
+      padding: 14px 40px; border-radius: 10px; background: var(--accent);
+      color: var(--bg); font-weight: bold; font-size: 18px; text-decoration: none;
+    }
+    .cta:hover { background: #ffb73d; }
+    section { background: var(--panel); border-radius: 12px; padding: 8px 20px 16px; margin-bottom: 20px; }
+    h2 { color: var(--accent); font-size: 18px; }
+    ul, ol { margin: 0; padding-left: 1.3em; }
+    footer { text-align: center; font-size: 13px; opacity: .7; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ARROW PUZZLE</h1>
+    <p class="lead">矢印をタップして、盤面からすべて取り除こう。</p>
+    <a class="cta" href="game/Arrow.v2.html">いますぐ遊ぶ</a>
+
+    <section>
+      <h2>ゲーム紹介</h2>
+      <p>盤面に並んだ矢印を1本ずつ飛ばして消していくパズルです。矢印は先端の向きにまっすぐ進みますが、行く手に別の矢印があると動けません。どの順番で取り除くかを考えましょう。</p>
+    </section>
+
+    <section>
+      <h2>あそびかた</h2>
+      <ol>
+        <li>取り除きたい矢印をクリック（タップ）します。</li>
+        <li>先端の向きに、盤面の端まで他の矢印がなければ飛んでいきます。</li>
+        <li>邪魔な矢印があると動けません。先に別の矢印をどかしましょう。</li>
+        <li>動かせない矢印を3回選ぶとゲームオーバーです。</li>
+        <li>すべての矢印を消したらクリアです。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>難易度</h2>
+      <ul>
+        <li><strong>通常モード</strong>：8×8マス</li>
+        <li><strong>難しいモード</strong>：16×16マス、矢印の数が4倍</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>特長</h2>
+      <ul>
+        <li>ブラウザだけで動作（インストール不要）</li>
+        <li>PC・スマートフォンの両方に対応</li>
+      </ul>
+    </section>
+
+    <footer>ARROW PUZZLE</footer>
+  </main>
+</body>
+</html>
