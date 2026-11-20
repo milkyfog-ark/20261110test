@@ -30,7 +30,7 @@
 
 ## 紹介記事
 
-- [note：コードが書けない私が、AIだけで「矢印パズル」を作って公開した話](https://note.com/fine_eagle8566/n/nc774f6729be4)
+- [note：コードが書けない私が、AIだけで「矢印パズル」を作って公開した話](https://note.com/milkyfog/n/nc774f6729be4)
 
 ## ファイル構成
 
